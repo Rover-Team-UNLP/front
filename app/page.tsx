@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Plug, Unplug } from "lucide-react"
 import Image from "next/image"
 
-const DEFAULT_WS_URL = "ws://localhost:8080"
+const DEFAULT_WS_URL = "ws://localhost:8080/ws"
 
 export default function RoverControlPage() {
   const [wsUrl, setWsUrl] = useState(DEFAULT_WS_URL)
@@ -29,7 +29,6 @@ export default function RoverControlPage() {
     moveBackward,
     moveLeft,
     moveRight,
-    stop,
     clearError,
   } = useRover({ serverUrl: wsUrl })
 
@@ -68,13 +67,9 @@ export default function RoverControlPage() {
           event.preventDefault()
           moveRight()
           break
-        case " ":
-          event.preventDefault()
-          stop()
-          break
       }
     },
-    [espConnected, moveForward, moveBackward, moveLeft, moveRight, stop]
+    [espConnected, moveForward, moveBackward, moveLeft, moveRight]
   )
 
   useEffect(() => {
@@ -118,7 +113,7 @@ export default function RoverControlPage() {
             <Input
               value={inputUrl}
               onChange={(e) => setInputUrl(e.target.value)}
-              placeholder="ws://192.168.1.100:8080"
+              placeholder="ws://192.168.1.100:8080/ws"
               className="font-mono text-sm"
               disabled={isConnected}
             />
@@ -149,21 +144,18 @@ export default function RoverControlPage() {
             onBackward={moveBackward}
             onLeft={moveLeft}
             onRight={moveRight}
-            onStop={stop}
             disabled={!espConnected}
           />
 
-          {/* Keyboard hints */}
-          <div className="mt-6 flex flex-wrap gap-2 justify-center">
+          {/* Las flechas del pad hacen lo mismo que W/A/S/D o teclas de dirección */}
+          <div className="mt-6 flex flex-wrap gap-2 justify-center items-center text-muted-foreground text-xs">
+            <span>Flechitas del pad =</span>
             <Kbd>W</Kbd>
             <Kbd>A</Kbd>
             <Kbd>S</Kbd>
             <Kbd>D</Kbd>
-            <span className="text-muted-foreground text-xs self-center mx-1">o</span>
+            <span className="mx-1">o</span>
             <Kbd>Flechas</Kbd>
-            <span className="text-muted-foreground text-xs self-center mx-1">|</span>
-            <Kbd>Espacio</Kbd>
-            <span className="text-muted-foreground text-xs self-center">= STOP</span>
           </div>
         </section>
 

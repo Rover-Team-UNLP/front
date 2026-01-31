@@ -71,9 +71,6 @@ export function useRover({ serverUrl }: UseRoverOptions) {
                 updateLogStatus(data.id, "error", data.message)
               }
               break
-            case "esp_message":
-              console.log("Mensaje del ESP32:", data.data)
-              break
           }
         } catch {
           console.error("Error parseando mensaje:", event.data)
@@ -152,7 +149,6 @@ export function useRover({ serverUrl }: UseRoverOptions) {
     moveBackward: (speed?: number) => sendCommand(RoverCommand.MOVE_BACKWARDS, speed !== undefined ? [speed] : []),
     moveLeft: (speed?: number) => sendCommand(RoverCommand.MOVE_LEFT, speed !== undefined ? [speed] : []),
     moveRight: (speed?: number) => sendCommand(RoverCommand.MOVE_RIGHT, speed !== undefined ? [speed] : []),
-    stop: () => sendCommand(RoverCommand.STOP),
     sendRaw: sendCommand,
 
     // Limpiar error
