@@ -12,12 +12,12 @@ Interfaz web para controlar el rover ESP32 por WebSocket: pad de flechas en pant
 
 ## Cómo usarlo
 
-**Requisitos:** Node.js, pnpm (o npm).
+**Requisitos:** Node.js, npm.
 
 ```bash
 cd front
-pnpm install
-pnpm dev
+npm install
+npm run dev
 ```
 
 Abre en el navegador la URL que indique la terminal (por ejemplo `http://localhost:3000`).
