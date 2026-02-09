@@ -13,25 +13,11 @@ import { Input } from "@/components/ui/input"
 import { Plug, Unplug, X, Gamepad2, MessageSquare } from "lucide-react"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
+import { getHttpUrl, getVideoStreamUrl } from "@/lib/backend-urls"
 
 const DEFAULT_WS_URL = "ws://localhost:8080/ws"
 
 type TabType = "control" | "chat"
-
-// Convierte la URL del WebSocket a URL base HTTP
-function getHttpUrl(wsUrl: string): string {
-  try {
-    const url = new URL(wsUrl)
-    const protocol = url.protocol === "wss:" ? "https:" : "http:"
-    return `${protocol}//${url.host}`
-  } catch {
-    return "http://localhost:8080"
-  }
-}
-
-function getVideoStreamUrl(wsUrl: string): string {
-  return `${getHttpUrl(wsUrl)}/video/stream`
-}
 
 export default function RoverControlPage() {
   const [wsUrl, setWsUrl] = useState(DEFAULT_WS_URL)
