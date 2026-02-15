@@ -1,9 +1,10 @@
 "use client"
 
 import React from "react"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useRover } from "@/hooks/use-rover"
 import { ControlPad } from "@/components/rover/control-pad"
+import { IntensitySelector, type IntensityLevel } from "@/components/rover/intensity-selector"
 import { ConnectionStatus } from "@/components/rover/connection-status"
 import { CommandLog } from "@/components/rover/command-log"
 import { VideoStream } from "@/components/rover/video-stream"
@@ -25,6 +26,9 @@ export default function RoverControlPage() {
   const [activeTab, setActiveTab] = useState<TabType>("control")
   const [showVideoInChat, setShowVideoInChat] = useState(false)
   const [connectionPulse, setConnectionPulse] = useState(false)
+  const [commandCooldown, setCommandCooldown] = useState(false)
+  const [intensity, setIntensity] = useState<IntensityLevel>(1) // Media por defecto
+  const cooldownTimerRef = useRef<NodeJS.Timeout | null>(null)
   
   const videoStreamUrl = getVideoStreamUrl(wsUrl)
   const httpUrl = getHttpUrl(wsUrl)
@@ -66,11 +70,30 @@ export default function RoverControlPage() {
     setTimeout(connect, 0)
   }
 
+  // Función para enviar comandos con cooldown de 2 segundos
+  const sendWithCooldown = useCallback((commandFn: () => void) => {
+    if (commandCooldown) return // Bloqueado durante cooldown
+    
+    commandFn() // Ejecutar el comando
+    setCommandCooldown(true) // Activar cooldown
+    
+    // Limpiar timer anterior si existe
+    if (cooldownTimerRef.current) {
+      clearTimeout(cooldownTimerRef.current)
+    }
+    
+    // Resetear cooldown después de 2 segundos
+    cooldownTimerRef.current = setTimeout(() => {
+      setCommandCooldown(false)
+    }, 2000)
+  }, [commandCooldown])
+
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       // Solo manejar teclas en modo control
       if (activeTab !== "control") return
       if (!espConnected) return
+      if (commandCooldown) return // Bloquear durante cooldown
       if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return
 
       switch (event.key) {
@@ -78,35 +101,44 @@ export default function RoverControlPage() {
         case "w":
         case "W":
           event.preventDefault()
-          moveForward()
+          sendWithCooldown(() => moveForward(intensity))
           break
         case "ArrowDown":
         case "s":
         case "S":
           event.preventDefault()
-          moveBackward()
+          sendWithCooldown(() => moveBackward(intensity))
           break
         case "ArrowLeft":
         case "a":
         case "A":
           event.preventDefault()
-          moveLeft()
+          sendWithCooldown(() => moveLeft(intensity))
           break
         case "ArrowRight":
         case "d":
         case "D":
           event.preventDefault()
-          moveRight()
+          sendWithCooldown(() => moveRight(intensity))
           break
       }
     },
-    [activeTab, espConnected, moveForward, moveBackward, moveLeft, moveRight]
+    [activeTab, espConnected, commandCooldown, sendWithCooldown, moveForward, moveBackward, moveLeft, moveRight, intensity]
   )
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [handleKeyDown])
+
+  // Cleanup del timer de cooldown al desmontar
+  useEffect(() => {
+    return () => {
+      if (cooldownTimerRef.current) {
+        clearTimeout(cooldownTimerRef.current)
+      }
+    }
+  }, [])
 
   return (
     <main className="h-screen flex flex-col bg-background overflow-hidden">
@@ -213,11 +245,19 @@ export default function RoverControlPage() {
               {/* Control Pad */}
               <div className="flex flex-col items-center">
                 <ControlPad
-                  onForward={moveForward}
-                  onBackward={moveBackward}
-                  onLeft={moveLeft}
-                  onRight={moveRight}
-                  disabled={!espConnected}
+                  onForward={() => sendWithCooldown(() => moveForward(intensity))}
+                  onBackward={() => sendWithCooldown(() => moveBackward(intensity))}
+                  onLeft={() => sendWithCooldown(() => moveLeft(intensity))}
+                  onRight={() => sendWithCooldown(() => moveRight(intensity))}
+                  disabled={!espConnected || commandCooldown}
+                />
+                
+                {/* Selector de intensidad */}
+                <IntensitySelector
+                  value={intensity}
+                  onChange={setIntensity}
+                  disabled={!espConnected || commandCooldown}
+                  className="mt-4"
                 />
                 
                 {/* Keyboard hints */}

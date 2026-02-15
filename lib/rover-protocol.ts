@@ -9,7 +9,7 @@ export enum RoverCommand {
 export interface RoverMessage {
   id: number // uint16_t - debe ser > 0 y < 65536
   cmd: RoverCommand
-  params: number[] // máximo 10 elementos, todos números
+  intensity: number // valor numérico de intensidad (0-100)
 }
 
 export interface ServerMessage {
@@ -23,14 +23,12 @@ export interface ServerMessage {
 export function validateMessage(msg: RoverMessage): boolean {
   if (msg.id <= 0 || msg.id > 65535) return false
   if (msg.cmd < 0 || msg.cmd > 3) return false
-  if (!Array.isArray(msg.params)) return false
-  if (msg.params.length > 10) return false
-  if (!msg.params.every((p) => typeof p === "number" && !isNaN(p))) return false
+  if (typeof msg.intensity !== "number" || isNaN(msg.intensity)) return false
   return true
 }
 
-export function createCommand(cmd: RoverCommand, params: number[] = []): Omit<RoverMessage, "id"> {
-  return { cmd, params }
+export function createCommand(cmd: RoverCommand, intensity: number = 100): Omit<RoverMessage, "id"> {
+  return { cmd, intensity }
 }
 
 export const COMMAND_LABELS: Record<RoverCommand, string> = {

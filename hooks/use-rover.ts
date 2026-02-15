@@ -97,7 +97,7 @@ export function useRover({ serverUrl }: UseRoverOptions) {
   }, [])
 
   const sendCommand = useCallback(
-    (cmd: RoverCommand, params: number[] = []) => {
+    (cmd: RoverCommand, intensity: number = 100) => {
       if (ws.current?.readyState !== WebSocket.OPEN) {
         setError("No conectado al servidor")
         return false
@@ -106,7 +106,7 @@ export function useRover({ serverUrl }: UseRoverOptions) {
       const message: RoverMessage = {
         id: commandId.current,
         cmd,
-        params,
+        intensity,
       }
 
       if (!validateMessage(message)) {
@@ -145,10 +145,10 @@ export function useRover({ serverUrl }: UseRoverOptions) {
     disconnect,
 
     // Comandos del rover
-    moveForward: (speed?: number) => sendCommand(RoverCommand.MOVE_FORWARD, speed !== undefined ? [speed] : []),
-    moveBackward: (speed?: number) => sendCommand(RoverCommand.MOVE_BACKWARDS, speed !== undefined ? [speed] : []),
-    moveLeft: (speed?: number) => sendCommand(RoverCommand.MOVE_LEFT, speed !== undefined ? [speed] : []),
-    moveRight: (speed?: number) => sendCommand(RoverCommand.MOVE_RIGHT, speed !== undefined ? [speed] : []),
+    moveForward: (intensity?: number) => sendCommand(RoverCommand.MOVE_FORWARD, intensity ?? 100),
+    moveBackward: (intensity?: number) => sendCommand(RoverCommand.MOVE_BACKWARDS, intensity ?? 100),
+    moveLeft: (intensity?: number) => sendCommand(RoverCommand.MOVE_LEFT, intensity ?? 100),
+    moveRight: (intensity?: number) => sendCommand(RoverCommand.MOVE_RIGHT, intensity ?? 100),
     sendRaw: sendCommand,
 
     // Limpiar error
